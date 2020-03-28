@@ -48,6 +48,10 @@
         "o fuso horário",
         "a fase da lua",
         "a conjuntura atual",
+        "o calendário gregoriano",
+        "a estação do ano",
+        "a virada do milênio",
+        "o overflow de buffers",
       ];
 
       function showResult() {
@@ -69,12 +73,12 @@
 
       function randomVerb() {
         const index = Math.floor(Math.random() * verbs.length);
-        return verbs.pop(index);
+        return verbs.splice(index, 1);
       }
 
       function randomCheck() {
         const index = Math.floor(Math.random() * checks.length);
-        return checks.pop(index);
+        return checks.splice(index, 1);
       }
 
       function changeStep() {
