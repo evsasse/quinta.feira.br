@@ -29,7 +29,28 @@
     <link rel="icon" type="image/png" sizes="16x16" href="https://sasse-it.s3.us-east-2.amazonaws.com/favicon-16x16.png">
 
     <script>
-      setTimeout(function () {
+      let verbs = [
+        "Considerando",
+        "Verificando",
+        "Calculando",
+        "Computando",
+        "Descobrindo",
+        "Prevendo",
+        "Preparando",
+        "Estimando",
+      ];
+
+      let checks = [
+        "o horário de verão",
+        "a sua localização",
+        "o seu signo",
+        "ano bissexto",
+        "o fuso horário",
+        "a fase da lua",
+        "a conjuntura atual",
+      ];
+
+      function showResult() {
         const today = new Date();
         if (today.getDay() === 4) {
           $('.js--thursday').slideDown();
@@ -38,7 +59,48 @@
         }
 
         $('.js--calculating').slideUp();
-      }, 5000);
+        $('.js--calculating__step').slideUp();
+      }
+
+      function addEllipsisToStep() {
+        const phrase = $('.js--calculating__step').text();
+        $('.js--calculating__step').text(phrase + '.');
+      }
+
+      function randomVerb() {
+        const index = Math.floor(Math.random() * verbs.length);
+        return verbs.pop(index);
+      }
+
+      function randomCheck() {
+        const index = Math.floor(Math.random() * checks.length);
+        return checks.pop(index);
+      }
+
+      function changeStep() {
+        const phrase = randomVerb() + ' ' + randomCheck();
+        $('.js--calculating__step').text(phrase);
+      }
+
+      function advance(remainingSteps) {
+        if (remainingSteps === 0){
+          return showResult();
+        }
+
+        const rest = remainingSteps % 4;
+        console.log(rest);
+        if (rest === 0) {
+          console.log('changeStep');
+          changeStep();
+        } else {
+          console.log('addEllipsis');
+          addEllipsisToStep();
+        }
+
+        setTimeout(function () {
+          advance(remainingSteps - 1);
+        }, 500);
+      }
     </script>
   </head>
 
@@ -49,6 +111,9 @@
         Calculando...
       </h1>
 
+      <p class="js--calculating__step text-muted font-italic">
+      </p>
+
       <h1 class="js--thursday" style="display: none;">
         Hoje é quinta-feira! 🍻
       </h1>
@@ -57,5 +122,9 @@
         Hoje não é quinta-feira :(
       </h1>
     </div>
+
+    <script>
+      advance(12);
+    </script>
   </body>
 </html>
