@@ -12,17 +12,50 @@
     <meta property="og:url" content="https://quinta.feira.br/" />
     <meta property="og:description" content="Hoje é quinta-feira?">
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link
+      rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    >
     <script src="https://kit.fontawesome.com/81b62d1be5.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"
+    ></script>
 
     <link rel="apple-touch-icon" sizes="180x180" href="https://sasse-it.s3.us-east-2.amazonaws.com/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="https://sasse-it.s3.us-east-2.amazonaws.com/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="https://sasse-it.s3.us-east-2.amazonaws.com/favicon-16x16.png">
+
+    <script>
+      setTimeout(function () {
+        const today = new Date();
+        if (today.getDay() === 4) {
+          $('.js--thursday').slideDown();
+        } else {
+          $('.js--not-thursday').slideDown();
+        }
+
+        $('.js--calculating').slideUp();
+      }, 5000);
+    </script>
   </head>
 
   <body>
-    <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh">
-      <h1>Hoje não é quinta-feira :(</h1>
+    <div class="container d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh">
+      <h1 class="js--calculating">
+        <i class="fas fa-circle-notch fa-spin mr-2"></i>
+        Calculando...
+      </h1>
+
+      <h1 class="js--thursday" style="display: none;">
+        Hoje é quinta-feira! 🍻
+      </h1>
+
+      <h1 class="js--not-thursday" style="display: none;">
+        Hoje não é quinta-feira :(
+      </h1>
     </div>
   </body>
 </html>
