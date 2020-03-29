@@ -64,6 +64,10 @@
 
         $('.js--calculating').slideUp();
         $('.js--calculating__step').slideUp();
+
+        setTimeout(function () {
+          $('.js--footer').slideDown();
+        }, 2000);
       }
 
       function addEllipsisToStep() {
@@ -128,6 +132,14 @@
         <span class="d-inline-block">😔</span>
       </h1>
     </div>
+
+    <footer class="fixed-bottom border-top bg-light js--footer" style="display: none;">
+      <div class="container p-2 text-right">
+        <a href="about.html">
+          Sobre
+        </a>
+      </div>
+    </footer>
 
     <script>
       setTimeout(function() {
