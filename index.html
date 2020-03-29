@@ -103,7 +103,7 @@
 
         setTimeout(function () {
           advance(remainingSteps - 1);
-        }, 500);
+        }, 800);
       }
     </script>
   </head>
@@ -132,7 +132,9 @@
     </div>
 
     <script>
-      advance(12);
+      setTimeout(function() {
+        advance(12);
+      }, 2000)
     </script>
   </body>
 </html>
