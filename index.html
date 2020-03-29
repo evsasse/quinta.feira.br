@@ -122,6 +122,12 @@
 
   <body>
     <div class="container d-flex flex-column align-items-center justify-content-center text-center" style="min-height: 100vh">
+      <p class="js--premium" style="display: none;">
+        <span class="badge badge-primary">
+          Teste gratuito do Plano Premium
+        </span>
+      </p>
+
       <h1 class="js--calculating">
         <i class="fas fa-circle-notch fa-spin mr-2"></i>
         Calculando...
@@ -155,6 +161,7 @@
     <script>
       if (premium) {
         $("body").addClass('night');
+        $(".js--premium").fadeIn(3000);
       }
 
       setTimeout(function() {
