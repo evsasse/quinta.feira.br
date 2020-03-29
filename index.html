@@ -28,7 +28,18 @@
     <link rel="icon" type="image/png" sizes="32x32" href="https://sasse-it.s3.us-east-2.amazonaws.com/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="https://sasse-it.s3.us-east-2.amazonaws.com/favicon-16x16.png">
 
+    <style>
+      .night {
+        background-color: #222;
+        color: #BBB;
+      }
+    </style>
+
     <script>
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      const premium = urlParams.get('premium') ? true : false;
+
       let verbs = [
         "Considerando",
         "Verificando",
@@ -104,7 +115,7 @@
 
         setTimeout(function () {
           advance(remainingSteps - 1);
-        }, 800);
+        }, premium ? 200 : 800);
       }
     </script>
   </head>
@@ -133,7 +144,7 @@
       </h1>
     </div>
 
-    <footer class="fixed-bottom border-top bg-light js--footer" style="display: none;">
+    <footer class="fixed-bottom border-top js--footer" style="display: none;">
       <div class="container py-2 text-right">
         <a href="about.html">
           Sobre
@@ -142,8 +153,12 @@
     </footer>
 
     <script>
+      if (premium) {
+        $("body").addClass('night');
+      }
+
       setTimeout(function() {
-        advance(12);
+        advance(premium ? 24 : 12);
       }, 3000)
     </script>
   </body>
