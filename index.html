@@ -69,6 +69,11 @@
         const today = new Date();
         if (today.getDay() === 4) {
           $('.js--thursday').slideDown();
+        } else if (today.getDate() === 1 && today.getMonth() === 3) {
+          $('.js--thursday').slideDown();
+          setInterval(function () {
+            $('.js--april-first').slideDown();
+          }, 2000);
         } else {
           $('.js--not-thursday').slideDown();
         }
@@ -142,6 +147,11 @@
         <span class="d-inline-block">quinta-feira!</span>
         <span class="d-inline-block">🍻</span>
       </h1>
+
+      <h4 class="js--april-first" style="display: none;">
+        <span class="d-inline-block">Nope,</span>
+        <span class="d-inline-block">Primeiro de Abril!</span>
+      </h4>
 
       <h1 class="js--not-thursday" style="display: none;">
         <span class="d-inline-block">Hoje não é</span>
