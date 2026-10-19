@@ -4,7 +4,9 @@ A fresh Next.js app with TypeScript, the App Router, and a single placeholder ho
 
 ## Development
 
-Use Node.js 20.9 or later and npm.
+Use Node.js 24.x and npm. This matches the latest Node.js version
+[supported by Vercel](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
+If you use nvm, run `nvm install` and `nvm use` to select the version in `.nvmrc`.
 
 ```sh
 npm ci
