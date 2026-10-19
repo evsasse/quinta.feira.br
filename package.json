@@ -2,12 +2,14 @@
   "name": "quinta-feira-br",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "biome lint app",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
   },
   "engines": {
     "node": "24.x"

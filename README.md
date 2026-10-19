@@ -5,11 +5,19 @@ A five-second timing game built with Next.js, TypeScript, and the App Router.
 Press **Space** to start the clock and press it again to stop as close to **05.00**
 seconds as possible. You can also click or tap the button. The seven-segment display
 shows seconds and hundredths live. Results include how early or late you stopped,
-your closest time, and your last five attempts for the current session.
+your closest time, and a floating desktop history with every attempt and its
+original feedback for the current session. The history stacks below the game on
+smaller screens.
 
 Timing uses the browser's monotonic clock; results are rounded to the nearest
 hundredth of a second. A displayed result of `05.00` wins. Holding Space does not
 start extra attempts. The timer stops automatically at `99.99`.
+
+There are 100 original Portuguese feedback messages across five result ranges:
+exact, within 0.10s, within 0.50s, early, and late. Each range cycles through its
+messages in random order before repeating. Edit `app/game-feedback.ts` to change
+the messages or thresholds. References mix Brazilian humor with team staples
+like capybaras, game night, pizza, coffee, and AI workshops.
 
 ## Development
 
@@ -29,6 +37,7 @@ for gameplay. Fonts are served locally from `public/fonts`, with their licenses.
 
 ```sh
 npm run lint
+npm test
 npm run typecheck
 npm run build
 npm start

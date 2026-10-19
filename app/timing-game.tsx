@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createFeedbackPicker } from "./game-feedback";
 
 type Phase = "ready" | "running" | "finished";
-type Attempt = { id: number; time: number };
-type Stats = { count: number; best: number | null; recent: Attempt[] };
+type Attempt = { id: number; time: number; feedback: string };
+type Stats = { count: number; best: number | null; history: Attempt[] };
 
 const TARGET = 500;
 const MAX_TIME_MS = 99_990;
@@ -60,36 +61,43 @@ export default function TimingGame() {
 	const [phase, setPhase] = useState<Phase>("ready");
 	const [time, setTime] = useState(0);
 	const [timedOut, setTimedOut] = useState(false);
+	const [feedback, setFeedback] = useState("");
+	const [pickFeedback] = useState(() => createFeedbackPicker());
 	const [stats, setStats] = useState<Stats>({
 		count: 0,
 		best: null,
-		recent: [],
+		history: [],
 	});
 	const running = useRef(false);
 	const startedAt = useRef(0);
 	const frame = useRef<number | null>(null);
 
-	const finish = useCallback((elapsedMs: number, atLimit = false) => {
-		if (!running.current) return;
-		running.current = false;
-		if (frame.current !== null) cancelAnimationFrame(frame.current);
-		const result = Math.min(9999, Math.round(elapsedMs / 10));
-		setTime(result);
-		setTimedOut(atLimit);
-		setPhase("finished");
-		setStats((previous) => ({
-			count: previous.count + 1,
-			best:
-				previous.best === null ||
-				Math.abs(result - TARGET) < Math.abs(previous.best - TARGET)
-					? result
-					: previous.best,
-			recent: [
-				{ id: previous.count + 1, time: result },
-				...previous.recent,
-			].slice(0, 5),
-		}));
-	}, []);
+	const finish = useCallback(
+		(elapsedMs: number, atLimit = false) => {
+			if (!running.current) return;
+			running.current = false;
+			if (frame.current !== null) cancelAnimationFrame(frame.current);
+			const result = Math.min(9999, Math.round(elapsedMs / 10));
+			const message = pickFeedback(result);
+			setFeedback(message);
+			setTime(result);
+			setTimedOut(atLimit);
+			setPhase("finished");
+			setStats((previous) => ({
+				count: previous.count + 1,
+				best:
+					previous.best === null ||
+					Math.abs(result - TARGET) < Math.abs(previous.best - TARGET)
+						? result
+						: previous.best,
+				history: [
+					{ id: previous.count + 1, time: result, feedback: message },
+					...previous.history,
+				],
+			}));
+		},
+		[pickFeedback],
+	);
 
 	const toggle = useCallback(() => {
 		const now = performance.now();
@@ -147,15 +155,6 @@ export default function TimingGame() {
 	const perfect = phase === "finished" && time === TARGET;
 	const difference = Math.abs(time - TARGET);
 	const display = formatTime(time);
-	const resultTitle = timedOut
-		? "O tempo voou."
-		: perfect
-			? "No tempo. Na mosca."
-			: difference <= 10
-				? "Foi por um quase!"
-				: difference <= 50
-					? "Tá pegando o ritmo."
-					: "Vamos acertar esse timing?";
 	const buttonLabel =
 		phase === "running"
 			? "Parar o relógio"
@@ -243,7 +242,7 @@ export default function TimingGame() {
 					</>
 				) : (
 					<>
-						<p className="feedback-title">{resultTitle}</p>
+						<p className="feedback-title">{feedback}</p>
 						<p>
 							{timedOut ? (
 								"O limite é 99.99 segundos. Que tal mais uma?"
@@ -295,45 +294,54 @@ export default function TimingGame() {
 					</strong>
 				</div>
 			</section>
-			<div className="history">
-				<span className="history-label">Últimas tentativas</span>
-				{stats.recent.length === 0 ? (
-					<p className="history-empty">
-						Sua primeira tentativa está a um espaço de distância.
-					</p>
+			<aside className="history-panel" aria-label="Histórico de tentativas">
+				<div className="history-heading">
+					<h2>Suas tentativas</h2>
+					<span className="history-count">
+						{stats.count.toString().padStart(2, "0")}
+					</span>
+				</div>
+				<p className="history-caption">O tempo passa. As pérolas ficam.</p>
+				{stats.history.length === 0 ? (
+					<div className="history-empty">
+						<span aria-hidden="true">05.00</span>
+						<p>
+							Seu primeiro tempo
+							<br />
+							ainda vai dar história.
+						</p>
+					</div>
 				) : (
-					<ol aria-label="Últimas tentativas, da mais recente à mais antiga">
-						{stats.recent.map((attempt) => (
+					<ol
+						className="history-list"
+						aria-label="Tentativas, da mais recente à mais antiga"
+					>
+						{stats.history.map((attempt) => (
 							<li
 								key={attempt.id}
 								className={attempt.time === TARGET ? "exact" : ""}
 							>
-								<span className="attempt-number">
-									{attempt.id.toString().padStart(2, "0")}
-								</span>
-								<span>{formatTime(attempt.time)}</span>
-								<span
-									className="attempt-direction"
-									role="img"
-									aria-label={
-										attempt.time === TARGET
-											? "Exato"
-											: attempt.time < TARGET
-												? "Antes do alvo"
-												: "Depois do alvo"
-									}
-								>
-									{attempt.time === TARGET
-										? "✓"
-										: attempt.time < TARGET
-											? "−"
-											: "+"}
-								</span>
+								<div className="attempt-heading">
+									<span className="attempt-number">
+										#{attempt.id.toString().padStart(2, "0")}
+									</span>
+									<strong>
+										{formatTime(attempt.time)}
+										<span>s</span>
+									</strong>
+									<span className="attempt-difference">
+										{attempt.time === TARGET
+											? "Na mosca!"
+											: `${attempt.time < TARGET ? "−" : "+"}${(Math.abs(attempt.time - TARGET) / 100).toFixed(2)}s`}
+									</span>
+								</div>
+								<p>{attempt.feedback}</p>
 							</li>
 						))}
 					</ol>
 				)}
-			</div>
+				<p className="history-session">Só desta sessão. Cada rodada conta.</p>
+			</aside>
 			<noscript>Ative o JavaScript no navegador para jogar.</noscript>
 		</section>
 	);
