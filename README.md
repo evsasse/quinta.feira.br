@@ -1,3 +1,29 @@
 # quinta.feira.br
 
-Hoje é quinta-feira?
+A fresh Next.js app with TypeScript, the App Router, and a single placeholder home page.
+
+## Development
+
+Use Node.js 20.9 or later and npm.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open http://localhost:3000. Edit `app/page.tsx` to update the home page.
+
+## Checks and production
+
+```sh
+npm run lint
+npm run typecheck
+npm run build
+npm start
+```
+
+## Legacy site
+
+The original site and its complete history are preserved on the
+[`legacy/2020-05-05`](https://github.com/evsasse/quinta.feira.br/tree/legacy/2020-05-05)
+branch, named after its last commit date.

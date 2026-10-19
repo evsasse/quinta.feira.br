@@ -1,0 +1,43 @@
+:root {
+  color: #20251f;
+  background: #f7f7f2;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.site-name {
+  margin: 0 0 2rem;
+  color: #3d6246;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+h1 {
+  max-width: 17ch;
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+p {
+  color: #596156;
+  line-height: 1.6;
+}
