@@ -4,8 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createFeedbackPicker } from "./game-feedback";
 
 type Phase = "ready" | "running" | "finished";
-type Attempt = { id: number; time: number; feedback: string };
-type Stats = { count: number; best: number | null; history: Attempt[] };
+type Mode = "normal" | "hard";
+type Attempt = { id: number; time: number; feedback: string; mode: Mode };
+type Stats = {
+	count: number;
+	best: Record<Mode, number | null>;
+	history: Attempt[];
+};
 
 const TARGET = 500;
 const MAX_TIME_MS = 99_990;
@@ -47,7 +52,9 @@ function Digit({ value }: { value: string }) {
 					key={points}
 					points={points}
 					className={
-						DIGITS[Number(value)].includes("abcdefg"[index])
+						(value === "-" ? "g" : DIGITS[Number(value)]).includes(
+							"abcdefg"[index],
+						)
 							? "segment on"
 							: "segment"
 					}
@@ -59,16 +66,20 @@ function Digit({ value }: { value: string }) {
 
 export default function TimingGame() {
 	const [phase, setPhase] = useState<Phase>("ready");
+	const [mode, setMode] = useState<Mode>("normal");
+	const [scrambledTime, setScrambledTime] = useState(0);
+	const [reducedMotion, setReducedMotion] = useState(false);
 	const [time, setTime] = useState(0);
 	const [timedOut, setTimedOut] = useState(false);
 	const [feedback, setFeedback] = useState("");
 	const [pickFeedback] = useState(() => createFeedbackPicker());
 	const [stats, setStats] = useState<Stats>({
 		count: 0,
-		best: null,
+		best: { normal: null, hard: null },
 		history: [],
 	});
 	const running = useRef(false);
+	const roundMode = useRef<Mode>("normal");
 	const startedAt = useRef(0);
 	const frame = useRef<number | null>(null);
 
@@ -78,6 +89,7 @@ export default function TimingGame() {
 			running.current = false;
 			if (frame.current !== null) cancelAnimationFrame(frame.current);
 			const result = Math.min(9999, Math.round(elapsedMs / 10));
+			const completedMode = roundMode.current;
 			const message = pickFeedback(result);
 			setFeedback(message);
 			setTime(result);
@@ -85,13 +97,22 @@ export default function TimingGame() {
 			setPhase("finished");
 			setStats((previous) => ({
 				count: previous.count + 1,
-				best:
-					previous.best === null ||
-					Math.abs(result - TARGET) < Math.abs(previous.best - TARGET)
-						? result
-						: previous.best,
+				best: {
+					...previous.best,
+					[completedMode]:
+						previous.best[completedMode] === null ||
+						Math.abs(result - TARGET) <
+							Math.abs(previous.best[completedMode] - TARGET)
+							? result
+							: previous.best[completedMode],
+				},
 				history: [
-					{ id: previous.count + 1, time: result, feedback: message },
+					{
+						id: previous.count + 1,
+						time: result,
+						feedback: message,
+						mode: completedMode,
+					},
 					...previous.history,
 				],
 			}));
@@ -107,22 +128,38 @@ export default function TimingGame() {
 			return;
 		}
 		startedAt.current = now;
+		roundMode.current = mode;
 		running.current = true;
+		const shouldReduceMotion = window.matchMedia(
+			"(prefers-reduced-motion: reduce)",
+		).matches;
+		setReducedMotion(shouldReduceMotion);
+		setScrambledTime(Math.floor(Math.random() * 10000));
+		let lastScrambledAt = now;
 		setTime(0);
 		setTimedOut(false);
 		setPhase("running");
 		const tick = () => {
 			if (!running.current) return;
-			const elapsed = performance.now() - startedAt.current;
+			const frameTime = performance.now();
+			const elapsed = frameTime - startedAt.current;
 			if (elapsed >= MAX_TIME_MS) {
 				finish(MAX_TIME_MS, true);
 				return;
 			}
-			setTime(Math.min(9999, Math.round(elapsed / 10)));
+			if (mode === "hard") {
+				// Decoys never depend on elapsed time. The real time is revealed on stop.
+				if (!shouldReduceMotion && frameTime - lastScrambledAt >= 120) {
+					setScrambledTime(Math.floor(Math.random() * 10000));
+					lastScrambledAt = frameTime;
+				}
+			} else {
+				setTime(Math.min(9999, Math.round(elapsed / 10)));
+			}
 			frame.current = requestAnimationFrame(tick);
 		};
 		frame.current = requestAnimationFrame(tick);
-	}, [finish]);
+	}, [finish, mode]);
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -154,7 +191,13 @@ export default function TimingGame() {
 
 	const perfect = phase === "finished" && time === TARGET;
 	const difference = Math.abs(time - TARGET);
-	const display = formatTime(time);
+	const hardRunning = mode === "hard" && phase === "running";
+	const display = hardRunning
+		? reducedMotion
+			? "--.--"
+			: formatTime(scrambledTime)
+		: formatTime(time);
+	const best = stats.best[mode];
 	const buttonLabel =
 		phase === "running"
 			? "Parar o relógio"
@@ -164,9 +207,39 @@ export default function TimingGame() {
 
 	return (
 		<section
-			className={`game ${phase}${perfect ? " perfect" : ""}`}
+			className={`game ${phase}${perfect ? " perfect" : ""}${mode === "hard" ? " hard-mode" : ""}`}
 			aria-label="Jogo dos cinco segundos"
 		>
+			<div className="mode-control">
+				<p id="mode-help">
+					{mode === "hard"
+						? "Números aleatórios. Confie no instinto."
+						: "O tempo aparece enquanto você joga."}
+				</p>
+				<label className="mode-option">
+					<span>Modo difícil</span>
+					<input
+						className="mode-input"
+						type="checkbox"
+						role="switch"
+						aria-checked={mode === "hard"}
+						checked={mode === "hard"}
+						disabled={phase === "running"}
+						aria-describedby="mode-help"
+						onChange={(event) => {
+							if (running.current) return;
+							setMode(event.target.checked ? "hard" : "normal");
+							setPhase("ready");
+							setTime(0);
+							setFeedback("");
+							setTimedOut(false);
+						}}
+					/>
+					<span className="switch-track" aria-hidden="true">
+						<span className="switch-knob" />
+					</span>
+				</label>
+			</div>
 			<div className="clock-housing">
 				<span className="screw top-left" aria-hidden="true" />
 				<span className="screw top-right" aria-hidden="true" />
@@ -184,12 +257,14 @@ export default function TimingGame() {
 							<circle cx="8" cy="8" r="6" />
 							<path d="M8 4v4l3 2" />
 						</svg>{" "}
-						Cronômetro
+						{mode === "hard" ? "No instinto" : "Cronômetro"}
 					</span>
 					<span className="clock-status">
 						<span className="status-dot" />
 						{phase === "running"
-							? "Contando"
+							? hardRunning
+								? "Sem pistas"
+								: "Contando"
 							: phase === "finished"
 								? "Finalizado"
 								: "Pronto"}
@@ -200,7 +275,11 @@ export default function TimingGame() {
 						className="digital-display"
 						role="timer"
 						aria-live="off"
-						aria-label={`${display} segundos`}
+						aria-label={
+							hardRunning
+								? "Tempo oculto no modo difícil"
+								: `${display} segundos`
+						}
 					>
 						<Digit value={display[0]} />
 						<Digit value={display[1]} />
@@ -233,12 +312,20 @@ export default function TimingGame() {
 						<p className="feedback-title">
 							Tudo no seu tempo. Mas tente em cinco.
 						</p>
-						<p>O relógio começa quando você quiser.</p>
+						<p>
+							{mode === "hard"
+								? "O tempo real só aparece quando você parar."
+								: "O relógio começa quando você quiser."}
+						</p>
 					</>
 				) : phase === "running" ? (
 					<>
 						<p className="feedback-title">Concentre-se. Sinta o tempo.</p>
-						<p>Pare quando o relógio chegar a 05.00.</p>
+						<p>
+							{mode === "hard"
+								? "Ignore os números. Pare quando sentir que deu cinco."
+								: "Pare quando o relógio chegar a 05.00."}
+						</p>
 					</>
 				) : (
 					<>
@@ -279,9 +366,11 @@ export default function TimingGame() {
 			</p>
 			<section className="session-stats" aria-label="Estatísticas desta sessão">
 				<div className="stat">
-					<span className="stat-label">Seu melhor tempo</span>
+					<span className="stat-label">
+						Seu melhor · {mode === "hard" ? "difícil" : "clássico"}
+					</span>
 					<strong>
-						{stats.best === null ? "— — . — —" : formatTime(stats.best)}
+						{best === null ? "— — . — —" : formatTime(best)}
 						<span className="stat-unit">s</span>
 					</strong>
 				</div>
@@ -335,6 +424,9 @@ export default function TimingGame() {
 											: `${attempt.time < TARGET ? "−" : "+"}${(Math.abs(attempt.time - TARGET) / 100).toFixed(2)}s`}
 									</span>
 								</div>
+								<span className={`attempt-mode ${attempt.mode}`}>
+									{attempt.mode === "hard" ? "Modo difícil" : "Clássico"}
+								</span>
 								<p>{attempt.feedback}</p>
 							</li>
 						))}

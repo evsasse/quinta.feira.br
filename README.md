@@ -9,6 +9,12 @@ your closest time, and a floating desktop history with every attempt and its
 original feedback for the current session. The history stacks below the game on
 smaller screens.
 
+Enable **Modo difícil** before a round to guess five seconds without a visible
+count-up. The display shows random decoy numbers and reveals the real elapsed
+time only when you stop. With reduced motion enabled, it shows static dashes.
+The mode is locked during a round. Personal bests are tracked separately for
+classic and hard mode, and each history entry records its mode.
+
 Timing uses the browser's monotonic clock; results are rounded to the nearest
 hundredth of a second. A displayed result of `05.00` wins. Holding Space does not
 start extra attempts. The timer stops automatically at `99.99`.
