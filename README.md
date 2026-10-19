@@ -6,8 +6,11 @@ Press **Space** to start the clock and press it again to stop as close to **05.0
 seconds as possible. You can also click or tap the button. The seven-segment display
 shows seconds and hundredths live. Results include how early or late you stopped,
 your closest time, and a floating desktop history with every attempt and its
-original feedback for the current session. The history stacks below the game on
-smaller screens.
+original feedback. Results are saved in this browser's local storage, including
+each attempt's mode and the separate best scores. The history stacks below the
+game on smaller screens. Use **Limpar** in the history panel to erase all attempts
+and records. The game opens in classic mode on every page load; the mode toggle
+and any running timer are not saved.
 
 Enable **Modo difícil** before a round to guess five seconds without a visible
 count-up. The display shows random decoy numbers and reveals the real elapsed

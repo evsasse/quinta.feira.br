@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFeedbackPicker } from "./game-feedback";
+import {
+	emptyStats,
+	HISTORY_STORAGE_KEY,
+	restoreStats,
+	serializeStats,
+	type Mode,
+} from "./game-history";
 
 type Phase = "ready" | "running" | "finished";
-type Mode = "normal" | "hard";
-type Attempt = { id: number; time: number; feedback: string; mode: Mode };
-type Stats = {
-	count: number;
-	best: Record<Mode, number | null>;
-	history: Attempt[];
-};
 
 const TARGET = 500;
 const MAX_TIME_MS = 99_990;
@@ -73,15 +73,46 @@ export default function TimingGame() {
 	const [timedOut, setTimedOut] = useState(false);
 	const [feedback, setFeedback] = useState("");
 	const [pickFeedback] = useState(() => createFeedbackPicker());
-	const [stats, setStats] = useState<Stats>({
-		count: 0,
-		best: { normal: null, hard: null },
-		history: [],
-	});
+	const [stats, setStats] = useState(emptyStats);
+	const [historyLoaded, setHistoryLoaded] = useState(false);
+	const [historySaved, setHistorySaved] = useState(true);
+	const storageReady = useRef(false);
 	const running = useRef(false);
 	const roundMode = useRef<Mode>("normal");
 	const startedAt = useRef(0);
 	const frame = useRef<number | null>(null);
+
+	useEffect(() => {
+		try {
+			setStats(restoreStats(localStorage.getItem(HISTORY_STORAGE_KEY)));
+		} catch {
+			setHistorySaved(false);
+		}
+		storageReady.current = true;
+		setHistoryLoaded(true);
+	}, []);
+
+	useEffect(() => {
+		// Hydrate first so the initial empty render cannot erase saved attempts.
+		if (!historyLoaded) return;
+		try {
+			if (stats.history.length)
+				localStorage.setItem(HISTORY_STORAGE_KEY, serializeStats(stats));
+			else localStorage.removeItem(HISTORY_STORAGE_KEY);
+			setHistorySaved(true);
+		} catch {
+			setHistorySaved(false);
+		}
+	}, [stats, historyLoaded]);
+
+	const resetHistory = () => {
+		if (running.current) return;
+		setStats(emptyStats());
+		setPhase("ready");
+		setTime(0);
+		setFeedback("");
+		setTimedOut(false);
+	};
 
 	const finish = useCallback(
 		(elapsedMs: number, atLimit = false) => {
@@ -121,6 +152,7 @@ export default function TimingGame() {
 	);
 
 	const toggle = useCallback(() => {
+		if (!storageReady.current) return;
 		const now = performance.now();
 		if (running.current) {
 			const elapsed = now - startedAt.current;
@@ -174,7 +206,7 @@ export default function TimingGame() {
 			if (
 				event.target instanceof Element &&
 				event.target.closest(
-					"input, textarea, select, a, [contenteditable]:not([contenteditable='false'])",
+					"input, textarea, select, a, button:not(.game-button), [contenteditable]:not([contenteditable='false'])",
 				)
 			)
 				return;
@@ -224,7 +256,7 @@ export default function TimingGame() {
 						role="switch"
 						aria-checked={mode === "hard"}
 						checked={mode === "hard"}
-						disabled={phase === "running"}
+						disabled={!historyLoaded || phase === "running"}
 						aria-describedby="mode-help"
 						onChange={(event) => {
 							if (running.current) return;
@@ -349,6 +381,7 @@ export default function TimingGame() {
 				className="game-button"
 				type="button"
 				onClick={toggle}
+				disabled={!historyLoaded}
 				aria-keyshortcuts="Space"
 			>
 				<span
@@ -364,7 +397,7 @@ export default function TimingGame() {
 				Aperte <strong>espaço</strong> ou toque no botão para{" "}
 				{phase === "running" ? "parar" : "começar"}.
 			</p>
-			<section className="session-stats" aria-label="Estatísticas desta sessão">
+			<section className="session-stats" aria-label="Seus resultados">
 				<div className="stat">
 					<span className="stat-label">
 						Seu melhor · {mode === "hard" ? "difícil" : "clássico"}
@@ -379,7 +412,7 @@ export default function TimingGame() {
 					<span className="stat-label">Tentativas</span>
 					<strong>
 						{stats.count.toString().padStart(2, "0")}
-						<span className="stat-unit">nesta sessão</span>
+						<span className="stat-unit">ao todo</span>
 					</strong>
 				</div>
 			</section>
@@ -432,7 +465,33 @@ export default function TimingGame() {
 						))}
 					</ol>
 				)}
-				<p className="history-session">Só desta sessão. Cada rodada conta.</p>
+				<div className="history-footer">
+					<p className="history-session">
+						{!historyLoaded
+							? "Carregando histórico…"
+							: historySaved
+								? "Salvo neste navegador."
+								: "Disponível enquanto esta página estiver aberta."}
+					</p>
+					<button
+						className="reset-history"
+						type="button"
+						onClick={resetHistory}
+						disabled={!historyLoaded || !stats.count || phase === "running"}
+						aria-label="Limpar histórico"
+						title="Apagar histórico e recordes"
+					>
+						<svg
+							viewBox="0 0 16 16"
+							fill="none"
+							stroke="currentColor"
+							aria-hidden="true"
+						>
+							<path d="M2 4h12M6 4V2h4v2M4 4l1 10h6l1-10M7 6v5M9 6v5" />
+						</svg>
+						Limpar
+					</button>
+				</div>
 			</aside>
 			<noscript>Ative o JavaScript no navegador para jogar.</noscript>
 		</section>

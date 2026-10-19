@@ -623,13 +623,48 @@ kbd {
 .exact .attempt-difference {
 	color: #34744c;
 }
-.history-session {
+.history-footer {
 	border-top: 1px solid var(--line);
 	padding-top: 13px;
 	margin: 13px 0 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+.history-session {
+	margin: 0;
 	font-size: 9px;
 	color: #949489;
 	line-height: 1.5;
+}
+.reset-history {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	flex-shrink: 0;
+	padding: 7px 8px;
+	min-height: 32px;
+	border: 1px solid #e2e0d7;
+	border-radius: 5px;
+	background: transparent;
+	color: #77776b;
+	font-size: 10px;
+	cursor: pointer;
+}
+.reset-history svg {
+	width: 12px;
+	height: 12px;
+}
+.reset-history:hover:enabled {
+	background: #f9eae4;
+	color: #a44738;
+	border-color: #e8c6bb;
+}
+.reset-history:disabled {
+	opacity: 0.4;
+	cursor: default;
 }
 @media (min-width: 1200px) {
 	.history-panel {
