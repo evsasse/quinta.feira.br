@@ -3,14 +3,15 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "quinta.feira.br",
-  description: "Uma nova quinta-feira está chegando. Em breve, um novo site por aqui.",
+	title: "quinta. — Você tem o timing?",
+	description:
+		"Pare o relógio em exatamente 5 segundos. Um jogo simples de timing e precisão: aperte espaço para começar e de novo para parar.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="pt-BR">
-      <body>{children}</body>
-    </html>
-  );
+	return (
+		<html lang="pt-BR">
+			<body>{children}</body>
+		</html>
+	);
 }
